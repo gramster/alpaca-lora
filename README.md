@@ -128,6 +128,7 @@ docker run --gpus=all --ipc=host --shm-size 64g \
   --lora_target_modules '[q_proj,v_proj]' \
   --train_on_inputs \
   --group_by_length
+```
 
 ### Inference (`generate.py`)
 
