@@ -19,9 +19,9 @@ Without hyperparameter tuning, the LoRA model produces outputs comparable to the
 
 1. Install dependencies
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+```bash
+pip install -r requirements.txt
+```
 
 1. Set environment variables, or modify the files referencing `BASE_MODEL`:
 
@@ -49,14 +49,14 @@ You mapped the host `.cache` folder to the container to persist the original mod
 
 ### Inference (`generate.py`)
 
-    ```bash
-    # Files referencing `BASE_MODEL`
-    # export_hf_checkpoint.py
-    # export_state_dict_checkpoint.py
-    export BASE_MODEL=decapoda-research/llama-7b-hf
-    ```
+```bash
+# Files referencing `BASE_MODEL`
+# export_hf_checkpoint.py
+# export_state_dict_checkpoint.py
+export BASE_MODEL=decapoda-research/llama-7b-hf
+```
 
-    Both `finetune.py` and `generate.py` use `--base_model` flag as shown further below.
+Both `finetune.py` and `generate.py` use `--base_model` flag as shown further below.
 
 1. If bitsandbytes doesn't work, [install it from source.](https://github.com/TimDettmers/bitsandbytes/blob/main/compile_from_source.md) Windows users can follow [these instructions](https://github.com/tloen/alpaca-lora/issues/17).
 
