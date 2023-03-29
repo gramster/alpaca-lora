@@ -1,4 +1,4 @@
-# 🦙🌲🤏 Alpaca-LoRA
+# 🦙🌲🤏 Alpaca-LoRA: Low-Rank LLaMA Instruct-Tuning
 
 - 🤗 **Try the pretrained model out [here](https://huggingface.co/spaces/tloen/alpaca-lora), courtesy of a GPU grant from Huggingface!**
 - Users have created a Discord server for discussion and support [here](https://discord.gg/prbq284xX5)
@@ -25,17 +25,50 @@ Without hyperparameter tuning, the LoRA model produces outputs comparable to the
 
 1. Set environment variables, or modify the files referencing `BASE_MODEL`:
 
+#### Docker
+
+You can use [`docker`](docker) with built-in support for `torch==2.1.0` and `bytesands`
+
+```bash
+docker build -t alpaca-lora .
+```
+
+> **Note**
+> Building the image will take several minutes
+
+Then, run it by mapping your local `.cache` folder to the container (and your output folder if you are training.)
+
+```bash
+docker run --gpus=all --ipc=host --shm-size 64g \
+  -v ${HOME}/.cache:/root/.cache \
+  -v ${PWD}/lora-alpaca:/workspace/lora-alpaca \
+  --rm -it alpaca-lora training.py
+```
+
+You mapped the host `.cache` folder to the container to persist the original model checkpoint in future runs.
+
+### Inference (`generate.py`)
+
     ```bash
     # Files referencing `BASE_MODEL`
     # export_hf_checkpoint.py
     # export_state_dict_checkpoint.py
-
     export BASE_MODEL=decapoda-research/llama-7b-hf
     ```
 
     Both `finetune.py` and `generate.py` use `--base_model` flag as shown further below.
 
 1. If bitsandbytes doesn't work, [install it from source.](https://github.com/TimDettmers/bitsandbytes/blob/main/compile_from_source.md) Windows users can follow [these instructions](https://github.com/tloen/alpaca-lora/issues/17).
+
+#### Docker
+
+```bash
+docker run --gpus=all --ipc=host --shm-size 64g \
+  -v ${HOME}/.cache:/root/.cache \
+  -v ${PWD}/lora-alpaca:/workspace/lora-alpaca \
+  -p 7860:7860 \
+  --rm -it alpaca-lora generate.py
+```
 
 ### Training (`finetune.py`)
 
@@ -73,6 +106,29 @@ python finetune.py \
     --group_by_length
 ```
 
+#### Docker
+
+```bash
+docker run --gpus=all --ipc=host --shm-size 64g \
+  -v ${HOME}/.cache:/root/.cache \
+  -v ${PWD}/lora-alpaca:/workspace/lora-alpaca \
+  --rm -it alpaca-lora finetune.py \
+  --base_model 'decapoda-research/llama-7b-hf' \
+  --data_path 'yahma/alpaca-cleaned' \
+  --output_dir './lora-alpaca' \
+  --batch_size 128 \
+  --micro_batch_size 4 \
+  --num_epochs 3 \
+  --learning_rate 1e-4 \
+  --cutoff_len 512 \
+  --val_set_size 2000 \
+  --lora_r 8 \
+  --lora_alpha 16 \
+  --lora_dropout 0.05 \
+  --lora_target_modules '[q_proj,v_proj]' \
+  --train_on_inputs \
+  --group_by_length
+
 ### Inference (`generate.py`)
 
 This file reads the foundation model from the Hugging Face model hub and the LoRA weights from `tloen/alpaca-lora-7b`, and runs a Gradio interface for inference on a specified input. Users should treat this as example code for the use of the model, and modify it as needed.
@@ -99,7 +155,6 @@ or [alpaca.cpp](https://github.com/antimatter15/alpaca.cpp).
 - We can likely improve our model performance significantly if we had a better dataset. Consider supporting the [LAION Open Assistant](https://open-assistant.io/) effort to produce a high-quality dataset for supervised fine-tuning (or bugging them to release their data).
 - We're continually fixing bugs and conducting training runs, and the weights on the Hugging Face Hub are being updated accordingly. In particular, those facing issues with response lengths should make sure that they have the latest version of the weights and code.
 - Users with multiple GPUs should take a look [here](https://github.com/tloen/alpaca-lora/issues/8#issuecomment-1477490259).
-- We include the Stanford Alpaca dataset, which was made available under the ODC Attribution License.
 
 ### Resources
 
@@ -110,9 +165,7 @@ or [alpaca.cpp](https://github.com/antimatter15/alpaca.cpp).
   - 7B:
     - <https://huggingface.co/tloen/alpaca-lora-7b>
     - <https://huggingface.co/samwit/alpaca7B-lora>
-    - 🤖 <https://huggingface.co/nomic-ai/gpt4all-lora>
     - 🇧🇷 <https://huggingface.co/22h/cabrita-lora-v0-1>
-    - 🇨🇳 <https://huggingface.co/ziqingyang/chinese-alpaca-lora-7b>
     - 🇨🇳 <https://huggingface.co/qychen/luotuo-lora-7b-0.1>
     - 🇯🇵 <https://huggingface.co/kunishou/Japanese-Alapaca-LoRA-7b-v0>
     - 🇫🇷 <https://huggingface.co/bofenghuang/vigogne-lora-7b>
@@ -126,14 +179,10 @@ or [alpaca.cpp](https://github.com/antimatter15/alpaca.cpp).
     - 🇯🇵 <https://huggingface.co/kunishou/Japanese-Alapaca-LoRA-13b-v0>
     - 🇰🇷 <https://huggingface.co/chansung/koalpaca-lora-13b>
     - 🇨🇳 <https://huggingface.co/facat/alpaca-lora-cn-13b>
-    - 🇪🇸 <https://huggingface.co/plncmm/guanaco-lora-13b>
   - 30B:
     - <https://huggingface.co/baseten/alpaca-30b>
     - <https://huggingface.co/chansung/alpaca-lora-30b>
     - 🇯🇵 <https://huggingface.co/kunishou/Japanese-Alapaca-LoRA-30b-v0>
-    - 🇰🇷 <https://huggingface.co/beomi/KoAlpaca-30B-LoRA>
-  - 65B:
-    - 🇰🇷 <https://huggingface.co/beomi/KoAlpaca-65B-LoRA>
 - [alpaca-native](https://huggingface.co/chavinlo/alpaca-native), a replication using the original Alpaca code
 
 ### Example outputs
@@ -317,3 +366,4 @@ for (let i = 1; i <= 100; i++) {
 **Stanford Alpaca**: No tengo boca, pero debo gritar.
 
 **text-davinci-003**: No tengo boca pero debo gritar.
+
